@@ -1,7 +1,7 @@
 # immon4ik_infra
 immon4ik Infra repository
 # ДЗ №3
-bastion_IP = 35.228.190.122.sslip.io
+bastion_IP = 35.228.190.122
 someinternalhost_IP = 10.166.0.6
 Команда подключения к someinternalhost:
 ssh -A immon4ik@35.228.190.122 ssh 10.166.0.6
