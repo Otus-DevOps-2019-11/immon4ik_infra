@@ -1,0 +1,6 @@
+{
+    "project_id_var": "silken-period-hw5",
+    "source_image_family_var": "ubuntu-1604-lts-hw5",
+    "machine_type_var": "f1-micro-hw5",
+    "image_family_var": "reddit-base-hw5"
+  }

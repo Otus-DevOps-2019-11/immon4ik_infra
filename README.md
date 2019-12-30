@@ -56,3 +56,12 @@ gcloud compute firewall-rules create ss-puma-server `
   --rules=tcp:9292 `
   --source-ranges=0.0.0.0/0 `
   --target-tags=ss-puma-server
+# ДЗ №5
+git mv deploy.sh install_mongodb.sh install_ruby.sh config-scripts
+add packer/variables.json, variables.json.example ubuntu16.json, immutable.json
+add packer/scripts/deploy.sh, install_mongodb.sh, install_ruby.sh hw5.sh
+add packer/files/hw5.service
+add .gitignore packer/variables.json
+packer build paker/ubuntu16.json
+packer build paker/immutable.json
+add config-scripts/create-reddit-vm.sh

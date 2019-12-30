@@ -1,0 +1,14 @@
+[Unit]
+Description=hw5
+After=syslog.target
+After=network.target
+After=mongod.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/immon4ik/reddit
+ExecStart=/usr/local/bin/puma
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
