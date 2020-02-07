@@ -15,7 +15,7 @@ resource "google_compute_project_metadata_item" "ssh-keys" {
 }
 
 module "app" {
-  source           = "d:/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/app"
+  source           = "../modules/app"
   public_key_path  = var.public_key_path
   private_key_path = var.private_key_path
   zone             = var.zone
@@ -28,7 +28,7 @@ module "app" {
 }
 
 module "db" {
-  source           = "d:/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/db"
+  source           = "../modules/db"
   public_key_path  = var.public_key_path
   private_key_path = var.private_key_path
   zone             = var.zone
@@ -39,7 +39,7 @@ module "db" {
 }
 
 module "vpc" {
-  source           = "d:/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/vpc"
+  source           = "../modules/vpc"
   source_ranges    = var.source_ranges
   public_key_path  = var.public_key_path
   private_key_path = var.private_key_path
