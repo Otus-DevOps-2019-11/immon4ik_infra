@@ -1,0 +1,33 @@
+{
+    "variables": {
+           "machine_type_var": "f1-micro",
+           "project_id_var": "silken-period-262510",
+           "source_image_family_var": "ubuntu-1604-lts",
+           "image_family_var": "reddit-base"
+       },
+    "builders": [
+        {
+            "type": "googlecompute",
+            "project_id": "{{user `project_id_var`}}",
+            "image_name": "reddit-base-mongodb-{{timestamp}}",
+            "image_description": "img for mongodb",
+            "disk_size": "10",
+            "disk_type": "pd-standard",
+            "image_family": "{{user `image_family_var`}}",
+            "source_image_family": "{{user `source_image_family_var`}}",
+            "zone": "europe-west1-b",
+            "ssh_username": "immon4ik",
+            "tags": "ss-puma-server",
+            "network": "default",
+            "machine_type": "{{user `machine_type_var`}}"
+        }
+    ],
+    "provisioners": [
+
+        {
+            "type": "shell",
+            "script": "scripts/install_mongodb.sh",
+            "execute_command": "sudo {{.Path}}"
+        }
+    ]
+}
