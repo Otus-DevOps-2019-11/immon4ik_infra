@@ -56,20 +56,27 @@ variable hc_timeout_sec {
 
 variable app_disk_image {
   description = "Disk image for reddit app"
-  default     = "reddit-base-ruby-1580729461"
+  default     = "reddit-base-app-1585770440"
 }
 
 variable db_disk_image {
   description = "Disk image for reddit db"
-  default     = "reddit-base-mongodb-1580729751"
+  default     = "reddit-base-mongodb-1585770706"
 }
 
 variable source_ranges {
   description = "Allowed IP addresses"
-  default     = ["217.14.25.187/32"]
+  default     = ["0.0.0.0/0"]
 }
 
-variable user_name {
-  type    = string
-  default = "immon4ik"
+variable app_module_source {
+  default = "E:/_maintenance/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/app"
+}
+
+variable db_module_source {
+  default = "E:/_maintenance/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/db"
+}
+
+variable vpc_module_source {
+  default = "E:/_maintenance/ForCICD/Repo/Study/immon4ik_infra/terraform/modules/vpc"
 }
