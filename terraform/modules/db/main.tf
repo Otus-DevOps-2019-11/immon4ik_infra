@@ -10,6 +10,11 @@ resource "google_compute_instance" "db" {
     }
   }
 
+  # Метки
+  labels = {
+    ansible_group = var.label_ansible_group
+  }
+
   # Настройки сети.
   network_interface {
     network = var.network_name

@@ -11,6 +11,11 @@ resource "google_compute_instance" "app" {
     }
   }
 
+  # Метки
+  labels = {
+    ansible_group = var.label_ansible_group
+  }
+
   # Параметры пользователя.
   metadata = {
     ssh-keys = "${var.user_name}:${file(var.public_key_path)}"

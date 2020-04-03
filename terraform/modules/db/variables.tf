@@ -27,6 +27,11 @@ variable db_disk_image {
   default = "reddit-base-mongodb-1585770706"
 }
 
+variable label_ansible_group {
+  type    = string
+  default = "db"
+}
+
 variable network_name {
   type    = string
   default = "default"

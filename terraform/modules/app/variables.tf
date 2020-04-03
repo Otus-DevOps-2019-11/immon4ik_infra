@@ -32,6 +32,11 @@ variable app_disk_image {
   default = "reddit-base-app-1585770440"
 }
 
+variable label_ansible_group {
+  type    = string
+  default = "app"
+}
+
 variable network_name {
   type    = string
   default = "default"
