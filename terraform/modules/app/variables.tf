@@ -29,7 +29,7 @@ variable tags {
 }
 
 variable app_disk_image {
-  default = "reddit-base-app-1585770440"
+  default = "reddit-base-app-1586091025"
 }
 
 variable label_ansible_group {
