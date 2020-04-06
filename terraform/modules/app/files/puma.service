@@ -1,13 +1,13 @@
 [Unit]
-Description=hw5
-After=syslog.target
+Description=Puma HTTP Server
 After=network.target
-After=mongod.service
 
 [Service]
 Type=simple
+User=immon4ik
 WorkingDirectory=/home/immon4ik/reddit
-ExecStart=/usr/local/bin/puma
+EnvironmentFile=/home/immon4ik/reddit_app_service.conf
+ExecStart=/bin/bash -lc 'puma'
 Restart=always
 
 [Install]

@@ -3,41 +3,46 @@ variable name_fw {
 }
 
 variable network_name {
-  type = string
-  default     = "default"
+  type    = string
+  default = "default"
 }
 
 variable user_name {
-  type = string
-  default     = "immon4ik"
+  type    = string
+  default = "immon4ik"
 }
 
 variable public_key_path {
-  type = string
+  type    = string
   default = ""
 }
 
 variable private_key_path {
-  type = string
+  type    = string
   default = ""
 }
 
 variable fw_allow_protocol {
-  type = string
+  type    = string
   default = "tcp"
 }
 
 variable fw_allow_ports {
-  type = list(string)
-  default     = ["22"]
+  type    = list(string)
+  default = ["22"]
 }
 
 variable source_ranges {
-  type = list(string)
+  type    = list(string)
   default = ["0.0.0.0/0"]
 }
 
 variable modules_depends_on {
   type    = any
   default = null
+}
+
+variable meta_key {
+  type    = string
+  default = "ssh-keys"
 }

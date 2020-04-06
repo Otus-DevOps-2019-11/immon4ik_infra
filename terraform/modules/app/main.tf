@@ -1,5 +1,6 @@
+# Основное ресурса инстанса.
 resource "google_compute_instance" "app" {
-  count = var.count_app
+  count        = var.count_app
   name         = "${var.name_app}-${count.index}"
   machine_type = var.machine_type
   zone         = var.zone
@@ -10,49 +11,73 @@ resource "google_compute_instance" "app" {
     }
   }
 
+  # Метки
+  labels = {
+    ansible_group = var.label_ansible_group
+  }
+
+  # Параметры пользователя.
+  metadata = {
+    ssh-keys = "${var.user_name}:${file(var.public_key_path)}"
+  }
+
+  # Настройки сети.
   network_interface {
     network = var.network_name
     access_config {
       nat_ip = google_compute_address.app_ip.address
     }
- }
-
-  metadata = {
-    ssh-keys = "${var.user_name}:${file(var.public_key_path)}"
   }
 
+  # Параметры подключения провижионеров.
   connection {
-    type  = var.connection_type
-    host  = self.network_interface[0].access_config[0].nat_ip
-    user  = var.user_name
-    agent = false
+    type        = var.connection_type
+    host        = self.network_interface[0].access_config[0].nat_ip
+    user        = var.user_name
+    agent       = false
     private_key = file(var.private_key_path)
   }
 
+  # Зависимости.
   depends_on = [var.modules_depends_on]
 
+  # Провижионеры.
   provisioner "file" {
-    content     = templatefile("${path.module}/files/puma.service.tmpl", { database_url = var.database_url })
+    source      = "${path.module}/files/set_env.sh"
+    destination = "/tmp/set_env.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "/bin/chmod +x /tmp/set_env.sh",
+      "/tmp/set_env.sh ${var.database_url}",
+    ]
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/files/puma.service"
     destination = "/tmp/puma.service"
   }
 
   provisioner "remote-exec" {
     script = "${path.module}/files/deploy.sh"
   }
-
 }
 
-resource "google_compute_address" "app_ip" {
-  name = var.app_ip_name
-}
-
+# Основное ресурса брандмауэра.
 resource "google_compute_firewall" "firewall_puma" {
-  name = var.fw_name
+  name    = var.fw_name
   network = var.network_name
   allow {
     protocol = var.fw_allow_protocol
-    ports = var.fw_allow_ports
+    ports    = var.fw_allow_ports
   }
   source_ranges = var.fw_source_ranges
-  target_tags = var.tags
+  target_tags   = var.tags
+}
+
+# Основное ресурса адреса хоста.
+resource "google_compute_address" "app_ip" {
+  name   = var.app_ip_name
+  region = var.region
 }

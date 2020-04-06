@@ -15,6 +15,8 @@ resource "google_compute_backend_service" "appbackend" {
 
   backend {
     group = google_compute_instance_group.appgroup.self_link
+    balancing_mode  = "UTILIZATION"
+    max_utilization = 0.8
   }
 
   health_checks = [
