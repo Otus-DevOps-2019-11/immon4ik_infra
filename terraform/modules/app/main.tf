@@ -14,6 +14,7 @@ resource "google_compute_instance" "app" {
   # Метки
   labels = {
     ansible_group = var.label_ansible_group
+    env           = var.label_env
   }
 
   # Параметры пользователя.

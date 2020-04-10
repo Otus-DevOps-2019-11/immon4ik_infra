@@ -64,6 +64,12 @@ variable db_disk_image {
   default     = "reddit-base-mongodb-1585770706"
 }
 
+variable label_env {
+  type        = string
+  description = "dev, stage, prod and etc."
+  default     = "stage"
+}
+
 variable source_ranges {
   description = "Allowed IP addresses"
   default     = ["0.0.0.0/0"]

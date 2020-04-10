@@ -25,7 +25,7 @@ variable region {
 
 variable tags {
   type    = list(string)
-  default = ["reddit-app"]
+  default = ["reddit-app", "http-server"]
 }
 
 variable app_disk_image {
@@ -35,6 +35,12 @@ variable app_disk_image {
 variable label_ansible_group {
   type    = string
   default = "app"
+}
+
+variable label_env {
+  type        = string
+  description = "dev, stage, prod and etc."
+  default     = "dev"
 }
 
 variable network_name {

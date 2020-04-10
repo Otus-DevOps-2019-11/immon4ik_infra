@@ -88,7 +88,7 @@ add config-scripts/create-reddit-vm.sh
 appserver: ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ```
 Это говорит о том, что после удаления папки reddit появляется возможность вновь её склонировать.
-### Задание с *.
+### Задание со *.
 Доработаны tf файлы модулей для маркировки по группам "app","db".
 Настроена работа virtualenv и python 3.6.8
 С использованием открытых источников написаны скрипты inventory.py, run_inventory.py для формирования файлов динамической инвентаризации.
@@ -137,4 +137,148 @@ enable_plugins = gcp_compute, host_list, script, yaml, ini, auto
 ```
 vars:
   db_host: "{{ hostvars['reddit-db']['ansible_default_ipv4']['address'] }}"
+```
+## ДЗ №10
+### Основное задание.
+В рамках ДЗ изучены практики по организации конфигурационного кода, разделение плейбуков по ролям, разделение окружений среды, изучены принцип работы и возможности ansible-galaxy.
+Для реализации открытия 80 порта для инстанса приложения в конфигурации terraform/modules/app/variables.tf было добавлено дефолтное значение тега http-server:
+```
+[...]
+variable tags {
+  type    = list(string)
+  default = ["reddit-app", "http-server"]
+}
+[...]
+```
+Добавлен вызов роли jdauphant.nginx в плейбук ansible/playbooks/app.yml:
+```
+[...]
+  roles:
+    - app
+    - jdauphant.nginx
+[...]
+```
+Изучена и применена работа с ansible-vault. Дополнен конфиг ansible/ansible.cfg для работы с мастер-ключем vault.key.
+Дополнен плейбук ansible/playbooks/site.yml для создания дополнительных пользователей из зашифрованных плейбуков соответствующей среды окружения:
+```
+[...]
+- import_playbook: users.yml
+[...]
+```
+Провереня доступность приложения на 80 порту и возможность подключиться новым пользователям после применения ansible/playbooks/site.yml
+### Задание со *.
+Для созданнового в прошлом задании динамического инвентори добавим фильтрацию по метке среды окружения:
+- ansible/environments/prod/inventory_gcp.yml
+```
+[...]
+filters:
+  - labels.env = prod
+[...]
+```
+- ansible/environments/stage/inventory_gcp.yml
+```
+[...]
+filters:
+  - labels.env = stage
+[...]
+```
+Теперь опишим эту метку в конфигурациях terraform:
+- terraform/modules/app/variables.tf
+```
+[...]
+variable label_env {
+  type    = string
+  description = "dev, stage, prod and etc."
+  default     = "dev"
+}
+[...]
+```
+- terraform/modules/app/main.tf
+```
+[...]
+labels = {
+  ansible_group = var.label_ansible_group
+  env = var.label_env
+}
+[...]
+```
+- terraform/modules/db/variables.tf
+```
+[...]
+variable label_env {
+  type    = string
+  description = "dev, stage, prod and etc."
+  default     = "dev"
+}
+[...]
+```
+- terraform/modules/db/main.tf
+```
+[...]
+labels = {
+  ansible_group = var.label_ansible_group
+  env = var.label_env
+}
+[...]
+```
+- terraform/prod/variables.tf
+```
+[...]
+variable label_env {
+  type    = string
+  description = "dev, stage, prod and etc."
+  default     = "prod"
+}
+[...]
+```
+- terraform/prod/main.tf
+```
+[...]
+label_env = var.label_env
+[...]
+```
+- terraform/stage/variables.tf
+```
+[...]
+variable label_env {
+  type    = string
+  description = "dev, stage, prod and etc."
+  default     = "stage"
+}
+[...]
+```
+- terraform/stage/main.tf
+```
+[...]
+label_env = var.label_env
+[...]
+```
+Поднимем среду для прода terraform/prod и попробуем выполнить ansible-playbook playbooks/site.yml --check,
+```
+[...]
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost
+does not match 'all'
+[WARNING]: While constructing a mapping from
+/home/immon4ik/otus/hw/ansible-3/ansible/roles/jdauphant.nginx/tasks/configuration.yml, line 62, column 3,
+found a duplicate dict key (when). Using last defined value only.
+[WARNING]: Could not match supplied host pattern, ignoring: db
+[...]
+```
+Результат говорит о работе меток, т.к. настроено дефолтное использование динамического инвентори для среды окружения stage.
+Выполнив  ansible-playbook -i environments/prod/inventory_gcp.yml playbooks/site.yml получаю настроенное приложение работающее на 80 порту и хосты доступные для дополнительных пользователей.
+### Задание с **.
+С использованием открытых источников(*https://docs.travis-ci.com/user/job-lifecycle/#breaking-the-build*) созданна следущая структура для выполнения задания:
+```
+play-travis/ansible-3/run_tests_in_docker.sh - скрипт для TravisCI, выполняется после тестов из ДЗ№3,передает команды в контейнер с тестами, использует пользователя appuser.
+play-travis/ansible-3/tests/controls/ansible.rb packer.rb terraform.rb - сценарии тестов для приложений, указанных в задании. Применяется packer validate для всех шаблонов, terraform validate и tflint для окружений stage и prod, ansible-lint для плейбуков ansible.
+play-travis/ansible-3/tests/inspec.yml - конфигурационный файл для запуска inspec, в нашей реализации не используется.
+play-travis/ansible-3/tests/run_tests.sh - скрипт преподготовки среды тестирования и запуска тестов из подготовленных сценариев.
+```
+С использованием открытых источников(*https://docs.travis-ci.com/user/job-lifecycle/#breaking-the-build*) изменен .travis.yml для выполнения скриптов и сценариев созданной среды тестирования:
+```
+[...]
+before_script:
+- curl https://raw.githubusercontent.com/otus-devops-2019-11/immon4ik_infra/ansible-3/play-travis/ansible-3/run_tests_in_docker.sh | bash
+[...]
+
 ```

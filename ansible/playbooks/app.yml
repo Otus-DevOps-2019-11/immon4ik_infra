@@ -1,0 +1,11 @@
+- name: Gather facts from reddit-db # https://serverfault.com/questions/638507/how-to-access-host-variable-of-a-different-host-with-ansible
+  hosts: db
+  tasks: []
+
+- name: Configure App
+  hosts: app
+  become: true
+
+  roles:
+    - app
+    - jdauphant.nginx
