@@ -16,7 +16,7 @@ control 'terraform' do
 	      		its('exit_status') { should eq 0 }
 	    	end
 	    end
-	    describe command("cd terraform/#{fname} && tflint --var-file=terraform.tfvars.example --ignore-module=SweetOps/storage-bucket/google --deep") do
+	    describe command("cd terraform/#{fname} && tflint --var-file=terraform.tfvars.example") do
 	      its('stdout') { should eq "" }
 	      its('stderr') { should eq "" }
 	      its('exit_status') { should eq 0 }
