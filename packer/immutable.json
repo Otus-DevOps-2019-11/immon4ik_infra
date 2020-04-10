@@ -27,16 +27,16 @@
     "provisioners": [
         {
             "type": "file",
-            "source": "files/puma.service",
+            "source": "packer/files/puma.service",
             "destination": "/home/immon4ik/puma.service"
         },
         {
             "type": "shell",
-            "script": "scripts/deploy_app.sh"
+            "script": "packer/scripts/deploy_app.sh"
         },
         {
             "type": "shell",
-            "script": "scripts/install_puma_service.sh",
+            "script": "packer/scripts/install_puma_service.sh",
             "execute_command": "sudo {{.Path}}"
         }
     ]
