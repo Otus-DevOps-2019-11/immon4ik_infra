@@ -24,7 +24,7 @@ variable tags {
 }
 
 variable db_disk_image {
-  default = "reddit-base-mongodb-1585770706"
+  default = "reddit-base-mongodb-1586090782"
 }
 
 variable label_ansible_group {
