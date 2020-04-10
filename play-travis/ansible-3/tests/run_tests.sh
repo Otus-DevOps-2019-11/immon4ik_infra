@@ -5,7 +5,7 @@ set -e
 # Используется пользователь не immon4ik, а appuser, т.к. в контейнере создан только пользователь appuser.
 touch ~/.ssh/appuser.pub ~/.ssh/appuser
 
-# Установка ролей из ansible-galaxy, описанные в requirements.yml.
+# Установка софта для окружения и ролей из ansible-galaxy, описанные в requirements.yml.
 pip install -r ansible/requirements.txt
 - ansible --version
 - ansible-lint --version
