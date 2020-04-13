@@ -121,7 +121,7 @@ inventory = ./run_inventory.py
 Написаны плейбуки для конфигурирования хостов БД и прилодения: ansible/app.yml, db.yml, deploy.yml, site.yml
 Написаны плейбуки для установки ПО хостов БД и приложения используя packer: ansible/packer_app.yml, packer_db.yml
 Переработаны сценарии сборки образов packer с использованием провижиенера ansible: app.json, db.json
-**Переведена инфраструктура тестирования и выполнения ДЗ с windows на *nix и в gcp. Установлен весь необходимый софт из предидущих ДЗ.**
+__Переведена инфраструктура тестирования и выполнения ДЗ с windows на *nix и в gcp. Установлен весь необходимый софт из предидущих ДЗ.__
 ### Задание со *.
 Для реализации динамической инвентаризации принято решение использовать инвентори плагин gcp compute.
 ansible.cfg изменен для возможности использовать динамическую инвентаризацию в gcp:
@@ -281,4 +281,132 @@ before_script:
 - curl https://raw.githubusercontent.com/otus-devops-2019-11/immon4ik_infra/ansible-3/play-travis/ansible-3/run_tests_in_docker.sh | bash
 [...]
 
+```
+## ДЗ №11
+### Основное задание.
+__Для выполнения задания были рассмотрены варианты работы с vagrant и virtualbox в gcp. Настроена и проверена работа с плагином vagrant-google.__
+__Настроена и использовалась инфраструктура с вложенной виртуализацией(https://cloud.google.com/compute/docs/instances/enable-nested-virtualization-vm-instances#starting_a_nested_vm), для этого настроен образ на базе centos с лицензией, позволяющей виртуализацию:__
+```
+gcloud compute images create nested-vm-image \
+  --source-disk disk-for-nv --source-disk-zone europ-west1-b \
+  --licenses "https://compute.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx
+```
+Т.к. использовался хост с низкими ресурсами ansible/Vagrantfile был дополнет:
+```
+[...]
+config.vm.boot_timeout = 1000
+[...]
+```
+ansible/playbooks/base.yml - добавлен плейбук утановки python и использования raw модуля на vb-хосты(в моём случае был необязательным).
+ansible/playbooks/site.yml - изменен плейбук для использования base.yml, удалено выполнение users.yml
+ansible/playbooks/packer_app.yml и packer_db - включены в использование ролей ansible/roles/app и ansible/roles/db соответственно.
+packer/app.json и db.json - доработаны провижионеры в шаблонах packer для работы с ролями ansible:
+```
+"extra_arguments": ["--tags","nead usefull tag"],
+"ansible_env_vars": ["ANSIBLE_ROLES_PATH={{ pwd }}/ansible/roles"]
+```
+__Собраны актуальные образы используя packer build.__
+ansible/roles/app/tasks/ruby.yml - таск с установкой ruby.
+ansible/roles/app/tasks/puma.yml - параметризированный таск с установкой unit для puma и добавления конфига.
+ansible/roles/app/tasks/main.yml - сводный таск с инструкцией по запуску тасков для роли app.
+ansible/roles/app/templates/puma.service.j2 - параметризированный шаблон с unit для puma.
+ansible/roles/db/tasks/install_mongo.yml - таск с установкой mongodb.
+ansible/roles/db/tasks/config_mongo.yml - таск c добавлением конфига mongodb из шаблона.
+ansible/roles/db/tasks/main.yml - сводный таск по запуску тасков для роли db.
+ansible/roles/app/default/main.yml - введена перемменная deploy_user параметризации установки компонентов для работы/деплоя приложения.
+ansible/playbooks/deploy.yml - доработан плейбук деплоя приложения c добавлением переменной {{ deploy_user }}.
+### Задание со *. Часть 1.
+На основе ДЗ№9 доработан ansible/Vagrantfile:
+```
+[...]
+ansible.extra_vars = {
+  "deploy_user" => "vagrant",
+  "nginx_sites" => {
+    "default" => [
+      "listen 80",
+      "server_name \"reddit\"",
+      "location / { proxy_pass http://127.0.0.1:9292;}"
+      ]
+  }
+}
+[...]
+```
+Проверим результат выполнения vagrant up:
+```
+[immon4ik@ansible-as02 ansible]$ curl 10.10.10.20
+[...]
+<a class='navbar-brand' href='/'>Monolith Reddit</a>
+</div>
+<div class='navbar-collapse collapse'>
+<ul class='nav navbar-nav navbar-right'>
+<li>
+<a href='/signup'>Sign up</a>
+</li>
+<li>
+<a href='/login'>Login</a>
+</li>
+[...]
+```
+### Основное задание. Тестирование ролей.
+ansible/roles/db/tasks/molecule/default/molecule.yml - доработан сценарий для использования на хосте с низкой производительностью:
+```
+[...]
+instance_raw_config_args:
+  - "vm.boot_timeout = 1000"
+[...]
+```
+ansible/roles/db/tasks/molecule/default/molecule.yml - добавлена проверка плагином testinfra:
+```
+[...]
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+[...]
+```
+ansible/roles/db/tasks/molecule/default/tests/test_default.py - написан тест к роли db для проверки того, что БД слушает по нужному порту:
+```
+[...]
+def test_mongo_port_is_open(host):
+    port = host.socket("tcp://0.0.0.0:27017")
+    assert port.is_listening
+[...]
+```
+### Задание со *. Часть 2.
+__Создан репо https://github.com/immon4ik/ansible-role-db.git. В него скопирована роль db и удалена из репо https://github.com/Otus-DevOps-2019-11/immon4ik_infra.git.__ __Репо подключен в travisci.__
+__Создан ssh ключ пользователя travis для работы в github.__ __Проверена интеграция с github.__ __Создан api_key.py для будущего деплоя приложений в gcp при помощи travis.__
+ansible/enviroments/prod/requirements.yml и ansible/enviroments/prod/requirements.yml - добавлена работа с репо для роли db:
+```
+[...]
+- src: https://github.com/immon4ik/ansible-role-db.git
+  name: db
+[...]
+```
+Для репо роли db:
+ansible/roles/db/tasks/molecule/default/molecule.yml - доработан для автоматического прогона тестов в gce:
+```
+[...]
+driver:
+  name: gce
+[...]
+```
+ansible/roles/db/tasks/molecule/default/molecule.yml - включено использование, собранного в основном задание образа через packer:
+```
+[...]
+platforms:
+  - name: instance-travis
+    zone: europe-west1-b
+    machine_type: f1-micro
+    image: reddit-base-mongodb-1586298865
+[...]
+```
+.travis.yml - настроен прогон тестов роли db в travisci используя molecule, добавлено оповещение о результате сборки в slack.
+README.md - добавлен кастомный бейдж статуса билда:
+```
+[...]
+custom build status badge
+------------------
+<!-- https://stackoverflow.com/questions/50860850/custom-label-for-travis-ci-badge-on-github-repo -->
+[![Build Status](https://img.shields.io/travis/com/immon4ik/ansible-role-db/master?color=9cf&label=immon4ik&style=plastic)](https://img.shields.io/travis/com/immon4ik/ansible-role-db/master?color=9cf&label=immon4ik&style=plastic)
+[...]
 ```

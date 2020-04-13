@@ -1,20 +1,25 @@
 ---
-- name: Deploy App
+- name: Deploy application
   hosts: app
-  become: true
+#  tags: deploy-tag
+  vars:
+    deploy_user: "immon4ik"
+
   tasks:
     - name: Fetch the latest version of application code
       git:
         repo: 'https://github.com/express42/reddit.git'
-        dest: /home/immon4ik/reddit
-        version: monolith
-      notify: restart puma
+        dest: "/home/{{ deploy_user }}/reddit"
+        version: monolith # Branch
+      notify: reload puma
 
-    - name: bundle install
+    - name: Bundle install
       bundler:
         state: present
-        chdir: /home/immon4ik/reddit
+        chdir: "/home/{{ deploy_user }}/reddit"
 
   handlers:
-  - name: restart puma
-    systemd: name=puma state=restarted
+  - name: reload puma
+    become: true
+    service: name=puma state=restarted
+    tags: app-tag
