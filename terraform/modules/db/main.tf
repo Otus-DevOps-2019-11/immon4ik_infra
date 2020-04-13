@@ -13,6 +13,7 @@ resource "google_compute_instance" "db" {
   # Метки
   labels = {
     ansible_group = var.label_ansible_group
+    env           = var.label_env
   }
 
   # Настройки сети.

@@ -1,0 +1,8 @@
+name: ansible-3
+title: InSpec Profile
+maintainer: Pablo Batsev
+copyright: Pablo Batsev
+copyright_email: job@immon.pro
+license: Apache-2.0
+summary: An InSpec Compliance Profile
+version: 0.1.0

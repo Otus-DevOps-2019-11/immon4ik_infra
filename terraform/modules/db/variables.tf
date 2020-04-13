@@ -32,6 +32,12 @@ variable label_ansible_group {
   default = "db"
 }
 
+variable label_env {
+  type        = string
+  description = "dev, stage, prod and etc."
+  default     = "dev"
+}
+
 variable network_name {
   type    = string
   default = "default"
